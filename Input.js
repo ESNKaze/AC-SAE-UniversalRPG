@@ -1,107 +1,155 @@
-// === AC-SAE + UNIVERSAL RPG INPUT MERGE ===
+// === 1_Input.js === SAE + UNIVERSAL HUD RPG ===
 const modifier = (text) => {
-    // === Allow SAE to run its own arc generation ===
-    if (typeof generatingArc !== "undefined" && generatingArc) {
-        // Let the arcPrompt go straight through to the AI
-        return { text: text, stop: false };
-    }
+  if (!state.UniversalRPG) {
+    state.UniversalRPG = {
+      player: {
+        name: "Ren Shenjun",
+        level: 15,
+        xp: 3462,
+        gold: 387,
+        health: 82,
+        maxHealth: 100,
+        mana: 71,
+        maxMana: 100,
+        stats: { stealth: 65, charm: 55, combat: 80, intellect: 60, luck: 50 },
+        skills: ["Sword Mastery", "Mana Channeling", "Dungeon Navigation"],
+        skillLevels: ["Advanced", "Proficient", "Competent"],
+        inventory: ["Energy Cell", "Medkit", "Data Chip"],
+        equipped: {
+          weapon: "Muramasa (Jetstream Sam's)",
+          ranged: "Plasma Rifle (Type-K)",
+          armor: "Standard-issue Hunter Armor (Lightly Damaged)"
+        },
+        storyTags: [],
+        class: "Hunter"
+      },
+      turnCount: 0,
+      arcInterval: 10,
+      generatingArc: false,
+      arcFailed: false
+    };
+  }
 
-    // === RPG COMMAND SYSTEM ===
-    const RPG = state.UniversalRPG;
-    const p = RPG.player;
-    const input = text.trim();
-    RPG.turnCount++;
+  const RPG = state.UniversalRPG;
+  const p = RPG.player;
+  const input = text.trim();
 
-    if (input.startsWith("/")) {
-        const [rawCmd, ...args] = input.slice(1).split(" ");
-        const cmd = rawCmd.toLowerCase();
-        const arg = args.join(" ").toLowerCase();
-        let response = "";
+  if (state.saveOutput || RPG.generatingArc) {
+    return { text, stop: false };
+  }
 
-        switch (cmd) {
-            case "status":
-                const stats = Object.entries(p.stats)
-                    .map(([k, v]) => `${k.charAt(0).toUpperCase() + k.slice(1)}: ${v}`)
-                    .join(" | ");
-                const levelMsg = RPG_checkLevelUp() || "";
-                response = `🧍 **${p.name}** (Level ${p.level})
-❤️ HP: ${p.health}/${p.maxHealth}   💫 XP: ${p.xp}/${p.level * 100}
-⚔️ Class: ${p.class || "Adventurer"}   💰 Gold: ${p.gold}
-${stats}
-🎭 Skills: ${p.skills.join(", ") || "None"}
-${levelMsg}`;
-                break;
+  if (input.startsWith("/")) {
+    const [rawCmd, ...args] = input.slice(1).split(" ");
+    const cmd = rawCmd.toLowerCase();
+    const arg = args.join(" ").toLowerCase();
+    let response = "";
 
-            case "inventory":
-            case "inv":
-                const eq = Object.entries(p.equipped)
-                    .filter(([, v]) => v)
-                    .map(([k, v]) => `${k}: ${v}`)
-                    .join(" | ") || "Nothing equipped";
-                response = `🎒 **Inventory:** ${p.inventory.join(", ") || "Empty"}
-💍 **Equipped:** ${eq}`;
-                break;
-
-            case "equipment":
-            case "equip":
-                const eqList = Object.entries(p.equipped)
-                    .map(([slot, item]) => `${slot}: ${item || "None"}`)
-                    .join(" | ");
-                response = `🧤 **Equipment:** ${eqList}`;
-                break;
-
-            case "changeclass":
-            case "class":
-                if (!arg) {
-                    response = `💼 Current class: **${p.class || "Adventurer"}**.
-Use: /changeclass <name>`;
-                } else {
-                    p.class = arg.charAt(0).toUpperCase() + arg.slice(1);
-                    response = `🔄 Class changed to **${p.class}**!`;
-                }
-                break;
-
-            case "exp":
-            case "experience":
-                const need = p.level * 100;
-                response = `💫 XP: ${p.xp}/${need} (Level ${p.level})`;
-                break;
-
-            case "addexp":
-                const xp = parseInt(arg) || 10;
-                p.xp += xp;
-                response = `✨ Gained ${xp} XP! ${RPG_checkLevelUp() || ""}`;
-                break;
-
-            case "addgold":
-                const gold = parseInt(arg) || 10;
-                p.gold += gold;
-                response = `💰 You gained ${gold} gold. (Total: ${p.gold})`;
-                break;
-
-            case "help":
-                response = `💋 **Available Commands**
-/status – Show full stats.
-/inventory – List your items.
-/equipment – Show equipped gear.
-/class or /changeclass <name> – Change your class.
-/exp – View experience.
-/addexp <amount> – Add XP.
-/addgold <amount> – Add gold.
-/help – Show this menu.`;
-                break;
-
-            default:
-                response = `❓ Unknown command: /${cmd}`;
+    switch (cmd) {
+      case "status":
+        let levelMsg = "";
+        const need = p.level * 100;
+        if (p.xp >= need) {
+          p.level++;
+          p.xp -= need;
+          p.maxHealth += 15;
+          p.health = p.maxHealth;
+          levelMsg = `\nLEVEL UP! Now Level ${p.level}. +15 Max HP.`;
         }
+        response = `Your visor flickers as the status display appears in your line of sight:
 
-        state.message = [{ text: `\n${response}\n`, mode: "replace" }];
-        return { text: "", stop: true };
+**Name:** ${p.name}
+**Class:** ${p.class || "Adventurer"} (${p.level < 10 ? "Rookie" : "Veteran"})
+**Level:** ${p.level}
+**Health:** ${p.health}/${p.maxHealth}
+**Mana:** ${p.mana || 100}/${p.maxMana || 100}
+
+**Equipment:**
+- ${p.equipped.weapon || "Standard Weapon"}
+- ${p.equipped.ranged || "Sidearm"}
+- ${p.equipped.armor || "Standard Armor"}
+
+**Skills:**
+- ${p.skills[0] || "Combat Training"} (${p.skillLevels?.[0] || "Proficient"})
+- ${p.skills[1] || "Stealth"} (${p.skillLevels?.[1] || "Competent"})
+- ${p.skills[2] || "Survival"} (${p.skillLevels?.[2] || "Basic"})
+
+**Experience Points:** ${p.xp}/${p.level * 100}
+
+Your health is slightly depleted from recent action, but not critically so. Energy levels remain stable. Your primary weapon hums faintly at your side, ready for the next move.${levelMsg}`;
+        break;
+
+      case "inventory":
+      case "inv":
+        response = `Your neural interface flashes an inventory overlay across your vision:
+
+**Inventory:** ${p.inventory.join(", ") || "Empty"}
+**Equipped:**
+- Weapon: ${p.equipped.weapon || "None"}
+- Ranged: ${p.equipped.ranged || "None"}
+- Armor: ${p.equipped.armor || "None"}
+
+Gear check complete. Ready to proceed.`;
+        break;
+
+      case "equipment":
+      case "equip":
+        response = `HUD Equipment Scan:
+- Weapon: ${p.equipped.weapon || "None"}
+- Ranged: ${p.equipped.ranged || "None"}
+- Armor: ${p.equipped.armor || "None"}`;
+        break;
+
+      case "class":
+      case "changeclass":
+        if (!arg) {
+          response = `HUD Pulse: **Current Class: ${p.class || "Adventurer"}**\nUse: /class <name> to change.`;
+        } else {
+          p.class = arg.charAt(0).toUpperCase() + arg.slice(1);
+          response = `Class updated: **${p.class}**. Neural pathways realigned.`;
+        }
+        break;
+
+      case "exp":
+      case "experience":
+        response = `XP Overlay: **${p.xp}/${p.level * 100}** (Level ${p.level})\nProgress stable.`;
+        break;
+
+      case "addexp":
+        const xp = parseInt(arg) || 10;
+        p.xp += xp;
+        response = `+${xp} XP gained. ${RPG_checkLevelUp() || ""}`;
+        break;
+
+      case "addgold":
+        const gold = parseInt(arg) || 10;
+        p.gold += gold;
+        response = `+${gold} credits. Total: ${p.gold}`;
+        break;
+
+      case "help":
+        response = `**UNIVERSAL HUD COMMANDS**
+/status – Visor HUD
+/inventory – Gear check
+/equipment – Equipped scan
+/class <name> – Change role
+/exp – Progress
+/addexp <num> – Gain XP
+/addgold <num> – Gain credits
+/help – This menu`;
+        break;
+
+      default:
+        response = `Unknown command: /${cmd}`;
     }
 
-    // === Normal SAE + AutoCards handling ===
-    text = AutoCards("input", onInput_SAE(text));
-    return { text };
+    state.message = [{ text: `\n${response}\n`, mode: "replace" }];
+    RPG.turnCount++;
+    if (typeof state.turnNum_SAE !== 'undefined') state.turnNum_SAE++;
+    return { text: "", stop: true };
+  }
+
+  text = AutoCards("input", onInput_SAE(text));
+  return { text };
 };
 
 modifier(text);
