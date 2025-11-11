@@ -54,10 +54,18 @@ const modifier = (text) => {
           p.level++;
           p.xp -= need;
           p.maxHealth += 15;
-          p.health = p.maxHealth;
+          p.health = p.maxHeart || p.maxHealth;
           levelMsg = `\nLEVEL UP! Now Level ${p.level}. +15 Max HP.`;
         }
-        response = `Your visor flickers as the status display appears in your line of sight:
+
+        // FIXED: Clean line breaks + proper string
+        const hudPrefix = p.storyTags.includes("romance") ? "Your heart flutters as a soft glow blooms in your vision" :
+                          p.storyTags.includes("fantasy") ? "A rune glows on your skin" :
+                          p.storyTags.includes("space") ? "Neural HUD boots up" :
+                          p.storyTags.includes("horror") ? "Your pulse spikes as red text burns in" :
+                          "Your visor flickers";
+
+        response = `${hudPrefix} as the status display appears in your line of sight:
 
 **Name:** ${p.name}
 **Class:** ${p.class || "Adventurer"} (${p.level < 10 ? "Rookie" : "Veteran"})
@@ -80,6 +88,7 @@ const modifier = (text) => {
 Your health is slightly depleted from recent action, but not critically so. Energy levels remain stable. Your primary weapon hums faintly at your side, ready for the next move.${levelMsg}`;
         break;
 
+      // ... (rest of cases unchanged — inventory, class, etc.)
       case "inventory":
       case "inv":
         response = `Your neural interface flashes an inventory overlay across your vision:
