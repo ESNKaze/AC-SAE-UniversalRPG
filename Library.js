@@ -6469,57 +6469,49 @@ function arcElementRemoval() {
         log("\narcElementRemoval ran.")
     }
 }
-
-// === Universal RPG + Story Arc Engine (Library) ===
-// Designed for compatibility with AC-SAE & Auto-Cards
-
+// === 0_Library.js === UNIVERSAL RPG + SAE CORE ===
 state.UniversalRPG ??= {
   player: {
-    name: "The Unnamed",
-    level: 1,
-    xp: 0,
-    gold: 0,
-    health: 100,
+    name: "Ren Shenjun",
+    level: 15,
+    xp: 3462,
+    gold: 387,
+    health: 82,
     maxHealth: 100,
-    stats: { stealth: 50, charm: 60, combat: 55, intellect: 50, luck: 50 },
-    skills: [],
-    inventory: ["Rusty Dagger", "Hooded Cloak"],
-    equipped: { weapon: null, armor: null, accessory: null },
-    storyTags: []
+    mana: 71,
+    maxMana: 100,
+    stats: { stealth: 65, charm: 55, combat: 80, intellect: 60, luck: 50 },
+    skills: ["Sword Mastery", "Mana Channeling", "Dungeon Navigation"],
+    skillLevels: ["Advanced", "Proficient", "Competent"],
+    inventory: ["Energy Cell", "Medkit", "Data Chip"],
+    equipped: {
+      weapon: "Muramasa (Jetstream Sam's)",
+      ranged: "Plasma Rifle (Type-K)",
+      armor: "Standard-issue Hunter Armor (Lightly Damaged)"
+    },
+    storyTags: [],
+    class: "Hunter"
   },
   turnCount: 0,
-  storyArc: "",
   arcInterval: 10,
   generatingArc: false,
-  arcFailed: false,
-  options: { pauseStory: true, universalMode: true, logToAutoCards: true }
+  arcFailed: false
 };
-
-const arcPrompt = `Based on the current story so far, generate a high-level story arc outline consisting of 5–10 key future events. Format as:
-1. Key event
-2. Key event
-...`;
 
 function RPG_roll(sides = 10) {
   return Math.floor(Math.random() * sides) + 1;
 }
 
 function RPG_checkLevelUp() {
-  const p = state.UniversalRPG.player;
+  const RPG = state.UniversalRPG;
+  const p = RPG.player;
   const need = p.level * 100;
   if (p.xp >= need) {
     p.level++;
     p.xp -= need;
     p.maxHealth += 15;
     p.health = p.maxHealth;
-    return `🌟 LEVEL UP! Now Level ${p.level}. +15 Health.`;
+    return `LEVEL UP! Now Level ${p.level}. +15 Max HP.`;
   }
-  return null;
-}
-
-function RPG_log(msg) {
-  if (state.UniversalRPG.options.logToAutoCards && typeof AutoCards === "function") {
-    try { AutoCards().API.addCardMemory("Player", msg); } catch {}
-  }
-  return msg;
+  return "";
 }
