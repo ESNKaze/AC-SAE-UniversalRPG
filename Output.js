@@ -19,9 +19,10 @@ const modifier = (text) => {
     }
   }
 
-  // ROMANCE: Add heartbeat if affection high
-  if (p.storyTags.includes("romance") && p.affection?.level > 70) {
-    text += `\n(Your heart races at the thought of *them*... ❤️)`;
+  // ROMANCE: Add heartbeat if affection high (SAFE CHECK)
+  if (p.storyTags.includes("romance") && p.affection && p.affection.level > 70) {
+    const partner = p.affection.partner || "them";
+    text += `\n(Your heart races at the thought of *${partner}*... ❤️)`;
   }
 
   return { text };
