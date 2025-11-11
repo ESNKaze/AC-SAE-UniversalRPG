@@ -1,27 +1,23 @@
-// === 1_Input.js === SAE + UNIVERSAL HUD RPG ===
+// === 1_Input.js === SAE + UNIVERSAL HUD RPG (ANY NAME) ===
 const modifier = (text) => {
   if (!state.UniversalRPG) {
     state.UniversalRPG = {
       player: {
-        name: "Ren Shenjun",
-        level: 15,
-        xp: 3462,
-        gold: 387,
-        health: 82,
+        name: "The Unnamed",
+        level: 1,
+        xp: 0,
+        gold: 0,
+        health: 100,
         maxHealth: 100,
-        mana: 71,
+        mana: 100,
         maxMana: 100,
-        stats: { stealth: 65, charm: 55, combat: 80, intellect: 60, luck: 50 },
-        skills: ["Sword Mastery", "Mana Channeling", "Dungeon Navigation"],
-        skillLevels: ["Advanced", "Proficient", "Competent"],
-        inventory: ["Energy Cell", "Medkit", "Data Chip"],
-        equipped: {
-          weapon: "Muramasa (Jetstream Sam's)",
-          ranged: "Plasma Rifle (Type-K)",
-          armor: "Standard-issue Hunter Armor (Lightly Damaged)"
-        },
+        stats: { stealth: 50, charm: 50, combat: 50, intellect: 50, luck: 50 },
+        skills: ["Basic Combat", "Survival Instinct"],
+        skillLevels: ["Novice", "Novice"],
+        inventory: ["Rusty Knife", "Bandages"],
+        equipped: { weapon: "Rusty Knife", ranged: null, armor: "Worn Cloak" },
         storyTags: [],
-        class: "Hunter"
+        class: "Adventurer"
       },
       turnCount: 0,
       arcInterval: 10,
@@ -33,6 +29,12 @@ const modifier = (text) => {
   const RPG = state.UniversalRPG;
   const p = RPG.player;
   const input = text.trim();
+
+  // AUTO-PULL NAME FROM STORY MEMORY
+  if (state.memory.context) {
+    const nameMatch = state.memory.context.match(/My name is ([^\n,.]+)/i);
+    if (nameMatch) p.name = nameMatch[1].trim();
+  }
 
   if (state.saveOutput || RPG.generatingArc) {
     return { text, stop: false };
