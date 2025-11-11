@@ -6469,28 +6469,24 @@ function arcElementRemoval() {
         log("\narcElementRemoval ran.")
     }
 }
-// === 0_Library.js === UNIVERSAL RPG + SAE CORE ===
+// === 0_Library.js === UNIVERSAL RPG + SAE CORE (BLANK START) ===
 state.UniversalRPG ??= {
   player: {
-    name: "Ren Shenjun",
-    level: 15,
-    xp: 3462,
-    gold: 387,
-    health: 82,
+    name: "The Unnamed",
+    level: 1,
+    xp: 0,
+    gold: 0,
+    health: 100,
     maxHealth: 100,
-    mana: 71,
+    mana: 100,
     maxMana: 100,
-    stats: { stealth: 65, charm: 55, combat: 80, intellect: 60, luck: 50 },
-    skills: ["Sword Mastery", "Mana Channeling", "Dungeon Navigation"],
-    skillLevels: ["Advanced", "Proficient", "Competent"],
-    inventory: ["Energy Cell", "Medkit", "Data Chip"],
-    equipped: {
-      weapon: "Muramasa (Jetstream Sam's)",
-      ranged: "Plasma Rifle (Type-K)",
-      armor: "Standard-issue Hunter Armor (Lightly Damaged)"
-    },
+    stats: { stealth: 50, charm: 50, combat: 50, intellect: 50, luck: 50 },
+    skills: ["Basic Combat", "Survival Instinct"],
+    skillLevels: ["Novice", "Novice"],
+    inventory: ["Rusty Knife", "Bandages"],
+    equipped: { weapon: "Rusty Knife", ranged: null, armor: "Worn Cloak" },
     storyTags: [],
-    class: "Hunter"
+    class: "Adventurer"
   },
   turnCount: 0,
   arcInterval: 10,
