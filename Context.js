@@ -5,19 +5,20 @@ const modifier = (text) => {
   const p = state.UniversalRPG?.player;
   if (!p) return { text, stop: false };
 
-  // AUTO-PULL NAME FROM STORY (fallback to player.name)
-  if (state.memory.context) {
-    const nameMatch = state.memory.context.match(/My name is ([^\n,.]+)/i);
-    if (nameMatch) p.name = nameMatch[1].trim();
-  }
+  // ENSURE state.memory.context EXISTS
+  if (!state.memory.context) state.memory.context = "";
 
-  // INJECT PLAYER STATS + TAGS INTO MEMORY (SAFE REPLACE)
+  // AUTO-PULL NAME FROM STORY
+  const nameMatch = state.memory.context.match(/My name is ([^\n,.]+)/i);
+  if (nameMatch) p.name = nameMatch[1].trim();
+
+  // INJECT PLAYER STATS + TAGS (SAFE REPLACE)
   const inject = `[Player: ${p.name} | Lvl ${p.level} | HP ${p.health}/${p.maxHealth} | Class: ${p.class || "Adventurer"}]\n[Tags: ${p.storyTags.join(", ") || "None"}]`;
 
-  // Remove old [Player...] block if exists
-  state.memory.context = state.memory.context.replace(/\[Player:[^\]]*\]\n\[Tags:[^\]]*\]/g, '').trim();
+  // Remove ALL old [Player...] blocks
+  state.memory.context = state.memory.context.replace(/\[Player:[^\]]*\]\n\[Tags:[^\]]*\][\n]*/g, '').trim();
 
-  // Append new inject
+  // Append fresh inject
   state.memory.context = (state.memory.context ? state.memory.context + "\n" : "") + inject;
 
   return { text, stop: false };
