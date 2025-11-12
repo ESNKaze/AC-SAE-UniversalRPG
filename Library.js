@@ -6469,7 +6469,7 @@ function arcElementRemoval() {
         log("\narcElementRemoval ran.")
     }
 }
-// === 0_Library.js === UNIVERSAL RPG + SAE CORE (BLANK START) ===
+// === 0_Library.js === UNIVERSAL RPG + SAE CORE + VENGEANCE FRENZY ===
 state.UniversalRPG ??= {
   player: {
     name: "The Unnamed",
@@ -6486,7 +6486,9 @@ state.UniversalRPG ??= {
     inventory: ["Rusty Knife", "Bandages"],
     equipped: { weapon: "Rusty Knife", ranged: null, armor: "Worn Cloak" },
     storyTags: [],
-    class: "Adventurer"
+    class: "Adventurer",
+    vengeance: 0,  // ← NEW: Vengeance Meter
+    affection: null  // ← For romance
   },
   turnCount: 0,
   arcInterval: 10,
@@ -6510,4 +6512,55 @@ function RPG_checkLevelUp() {
     return `LEVEL UP! Now Level ${p.level}. +15 Max HP.`;
   }
   return "";
+}
+
+// === VENGEANCE FRENZY SYSTEM ===
+function RPG_vengeanceCheck() {
+  const p = state.UniversalRPG.player;
+  const alerts = [];
+
+  p.vengeance = (p.vengeance || 0) + 15;  // +15 per hit
+
+  if (p.vengeance >= 100) {
+    p.vengeance = 0;
+    alerts.push("**DARKNESS UNLEASHED!**");
+    // Optional: Auto-heal or damage boost
+    p.health = Math.min(p.maxHealth, p.health + 30);
+    alerts.push(`**+30 Health restored in rage!**`);
+  }
+
+  return alerts.length > 0 ? alerts.join(" | ") : "";
+}
+// === DEBUFF SYSTEM (DURATIONS: BLEED 4, POISON 5, SILENCE 2) ===
+state.UniversalRPG.player.debuffs ??= {};  // {bleeding: 4, poison: 5, silence: 2}
+
+function RPG_tickDebuffs() {
+  const p = state.UniversalRPG.player;
+  const alerts = [];
+  for (let debuff in p.debuffs) {
+    p.debuffs[debuff]--;
+    if (debuff === 'bleeding') {
+      const dmg = 5;
+      p.health = Math.max(0, p.health - dmg);
+      alerts.push(`**BLEED TICK! -${dmg} HP → ${p.health}/${p.maxHealth} 🩸 (${p.debuffs[debuff]} turns left)**`);
+    } else if (debuff === 'poison') {
+      const drain = 8;
+      p.mana = Math.max(0, p.mana - drain);
+      alerts.push(`**POISON TICK! -${drain} MP → ${p.mana}/${p.maxMana} ☠️ (${p.debuffs[debuff]} turns left)**`);
+    } else if (debuff === 'silence') {
+      alerts.push(`**SILENCE! Skills blocked 🔇 (${p.debuffs[debuff]} turns left)**`);
+    }
+    if (p.debuffs[debuff] <= 0) {
+      delete p.debuffs[debuff];
+      alerts.push(`**${debuff.toUpperCase()} PURGED!**`);
+    }
+  }
+  return alerts.length > 0 ? alerts.join(' | ') : "";
+}
+
+function RPG_cureDebuffs() {
+  const p = state.UniversalRPG.player;
+  const oldDebuffs = Object.keys(p.debuffs).length;
+  p.debuffs = {};
+  return oldDebuffs > 0 ? "**ALL DEBUFFS PURGED!**" : "";
 }
